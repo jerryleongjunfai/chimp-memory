@@ -14,11 +14,11 @@ class Grid:
                 xCoord = random.randint(1, 8)
                 yCoord = random.randint(1, 5)
 
-                if not any(tile[0] == xCoord and tile[1] == yCoord for tile in self.tiles):
-                    self.tiles.append((xCoord, yCoord, num))
-                    break
-                else:
-                    print(f"Tile at position ({xCoord}, {yCoord}) already exists. Generating a new position.")
+            if not any(tile[0] == xCoordinate and tile[1] == yCoordinate for tile in self.tiles):
+                self.tiles.append((xCoord, yCoord, num))
+                break
+            else:
+                print(f"Tile at position ({xCoord}, {yCoord}) already exists. Generating a new position.")
         print("Tiles generated successfully.")
         print("Tiles:", self.tiles)
         return self.tiles
