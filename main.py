@@ -54,8 +54,8 @@ def main_game():
     cell_width = ui.SCREEN_WIDTH // cols  
     cell_height = (ui.SCREEN_HEIGHT - 100) // rows
 
-    game_instance = game.Game()
-    my_grid = Grid(game_instance.level + 3)
+    game_instance = game.Game()  # Initialize Game
+    my_grid = Grid(4)  # Create grid with adjusted level
 
     while run:
         screen.fill(ui.WHITE)
@@ -67,16 +67,17 @@ def main_game():
                 y = row * cell_height + 50
                 pygame.draw.rect(screen, (211, 211, 211), (x, y, cell_width, cell_height), 2)
 
+        # Show tiles using the method without passing any argument
+        my_grid.showTiles()  # This call is fine now
+
+        # Draw tiles
         for tile in my_grid.tiles:
             xCoord, yCoord, num = tile
-            # Calculate the position for the number on the tile
             x = (xCoord - 1) * cell_width + cell_width // 2
             y = (yCoord - 1) * cell_height + cell_height // 2 + 50
-            # Render the number in the center of the tile
             text = ui.title_font.render(str(num), True, ui.BLACK)
             text_rect = text.get_rect(center=(x, y))
             screen.blit(text, text_rect)
-
 
         pygame.display.flip()
 
@@ -86,6 +87,5 @@ def main_game():
                 exit()
 
 
-print("trying it again")
 welcome_screen()
 main_game()
