@@ -56,5 +56,7 @@ def main_game():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
+print("trying it again")
 welcome_screen()
 main_game()
