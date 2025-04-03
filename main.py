@@ -49,7 +49,7 @@ def welcome_screen():
 def main_game():
     run = True 
     while run:
-        screen.fill(ui.WHITE)
+        screen.fill(ui.BLACK)
         pygame.display.flip()
 
         for event in pygame.event.get():
