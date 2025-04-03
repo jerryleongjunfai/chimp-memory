@@ -49,7 +49,15 @@ def welcome_screen():
 def main_game():
     run = True 
     while run:
-        screen.fill(ui.BLACK)
+        screen.fill(ui.WHITE)
+
+        # Draw the 8x5 grid
+        for row in range(rows):
+            for col in range(cols):
+                x = col * cell_width
+                y = row * cell_height + 50
+                pygame.draw.rect(screen, (211, 211, 211), (x, y, cell_width, cell_height), 2)
+
         pygame.display.flip()
 
         for event in pygame.event.get():
