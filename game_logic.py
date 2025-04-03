@@ -1,23 +1,28 @@
 import pygame
 import uimanager as ui
-import main as m
+#import main as m
 import grid as g
 import player as p
 
 class Game(pygame):
+
     def __init__(self):
         pygame.init()
         pygame.font.init()
         pygame.display.set_caption("Chimpanzee Memory Game")
         self.screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
-        self.level = 1
+        self.level = 4
         self.lives = 3
         self.isGameOver = False
-        m.welcome_screen()
+        self.welcome_screen()
+
+    def welcome_screen(self):
+        # Logic for the welcome screen
+        pass
 
     def startLevel(self):
         while self.lives > 0 and self.level <= 15:
-            grid = m.Grid(self.level)
+            grid = g.Grid(self.level)
             grid.generateTiles(self.level)
             grid.showTiles()
             grid.hideTiles()
