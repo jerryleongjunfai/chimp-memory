@@ -47,7 +47,11 @@ def welcome_screen():
                     running = False
 
 def main_game():
-    run = True 
+    run = True  
+    cols, rows = 8, 5  # 8x5 table
+    cell_width = ui.SCREEN_WIDTH // cols  
+    cell_height = (ui.SCREEN_HEIGHT - 100) // rows
+
     while run:
         screen.fill(ui.WHITE)
 
