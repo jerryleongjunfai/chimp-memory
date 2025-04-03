@@ -4,7 +4,7 @@ import uimanager as ui
 import grid as g
 import player as p
 
-class Game(pygame):
+class Game:
 
     def __init__(self):
         pygame.init()

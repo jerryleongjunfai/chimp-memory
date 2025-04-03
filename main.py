@@ -58,6 +58,9 @@ def main_game():
     my_grid = Grid(game_instance.level + 3)
 
     while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
         screen.fill(ui.WHITE)
 
         # Draw the 8x5 grid
@@ -78,7 +81,7 @@ def main_game():
             screen.blit(text, text_rect)
 
 
-        pygame.display.flip()
+        pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
