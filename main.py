@@ -58,5 +58,6 @@ def main_game():
                 exit()
 
 print("trying it again")
+print("")
 welcome_screen()
 main_game()
