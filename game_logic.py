@@ -10,20 +10,28 @@ class Game:
         pygame.font.init()
         pygame.display.set_caption("Chimpanzee Memory Game")
         self.screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
-        self.level = 1
-        self.lives = 3
+        self._level = 1
+        self._lives = 3
+        self._gameState = "SHOW_TILES"
         self.isGameOver = False
         self.correctOrder = []
         self.userSelection = []
-        self.gameState = "SHOW_TILES"
-        self.showTimer = 0
+        self.show_timer = 0
         self.expected_next = 1
         self.level_failed = False
         self.correct_selections = []
         self.wrong_selection = None
+        self.game_timer = 60
+        self.start_time = 0
+    
+    def get_level(self):
+        return self._level
+
+    def lose_life(self):
+        self._lives -= 1
 
     def start_new_level(self):
-        self.grid = g.Grid(self.level + 1)
+        self.grid = g.Grid(self._level + 1)
         self.correctOrder = sorted(self.grid.tiles, key=lambda x: x[2])
         self.user_selections = []
         self.correct_selections = []
@@ -31,6 +39,7 @@ class Game:
         self.expected_next = 1
         self.game_state = "SHOW_TILES"
         self.show_timer = pygame.time.get_ticks()
+        self.start_time = pygame.time.get_ticks()
         self.grid.showTiles()
         self.level_failed = False
 
@@ -41,7 +50,15 @@ class Game:
         if self.game_state == "SHOW_TILES" and current_time - self.show_timer > 3000:  # 3 seconds
             self.game_state = "HIDE_TILES"
             self.grid.hideTiles()
-
+        
+        # Check if time is up
+        elapsed_seconds = (current_time - self.start_time) // 1000
+        remaining_time = max(0, self.game_timer - elapsed_seconds)
+        
+        if remaining_time <= 0 and self.game_state != "GAME_OVER":
+            self.lives = 0
+            self.game_state = "GAME_OVER"
+    
     def handle_click(self, pos):
         if self.game_state != "HIDE_TILES":
             return
@@ -93,8 +110,15 @@ class Game:
     def draw_game_state(self, screen):
         # Draw the header with level and lives info
         pygame.draw.rect(screen, ui.background_color, (0, 0, ui.SCREEN_WIDTH, 50))
-        ui.draw_text(f"Level: {self.level}", ui.regular_font, ui.BLACK, screen, 50, 25, True)
-        ui.draw_text(f"Lives: {self.lives}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH - 50, 25, True)
+        ui.draw_text(f"Level: {self._level}", ui.regular_font, ui.BLACK, screen, 50, 25, True)
+
+        if self.game_state != "GAME_OVER":
+            elapsed_seconds = (pygame.time.get_ticks() - self.start_time) // 1000
+            remaining_time = max(0, self.game_timer - elapsed_seconds)
+            timer_text = f"{remaining_time // 60}:{remaining_time % 60:02d}"
+            ui.draw_text(timer_text, ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, 25, True)
+
+        ui.draw_text(f"Lives: {self._lives}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH - 50, 25, True)
         
         # Draw grid
         cols, rows = 8, 5
@@ -108,7 +132,7 @@ class Game:
             xCoord, yCoord, num = tile
             x = (xCoord - 1) * cell_width
             y = (yCoord - 1) * cell_height + 50
-            pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height))
+            pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height), 2)
 
         # Draw correct selections in green
         for tile in self.correct_selections:
@@ -162,5 +186,5 @@ class Game:
         
         if self.game_state == "GAME_OVER":
             ui.draw_text("Game Over!", ui.title_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2, True)
-            ui.draw_text(f"Highest level reached: {self.level}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 50, True)
-            ui.draw_text("Click to restart", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 100, True)
+            ui.draw_text(f"Highest level reached: {self._level}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 50, True)
+            ui.draw_text("Click to restart", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 150, True)
