@@ -1,19 +1,18 @@
-import pygame
 import random
-import time
 
 class Grid:
     def __init__(self, level):
         self.numberOfTiles = level
         self.tiles = []
+        self.visible = True
         self.generateTiles(level)
 
     def generateTiles (self, level):
+        self.tiles = []  # Reset tiles for each level
         for num in range(1, level + 1):
             while True:
                 xCoord = random.randint(1, 8)
                 yCoord = random.randint(1, 5)
-
                 if not any(tile[0] == xCoord and tile[1] == yCoord for tile in self.tiles):
                     self.tiles.append((xCoord, yCoord, num))
                     break
@@ -24,13 +23,9 @@ class Grid:
         return self.tiles
             
     def showTiles(self):
+        self.visible = True
         print("Showing the tiles for 3 seconds...")
-        for tile in self.tiles:
-            print(f"Tile at position ({tile[0]}, {tile[1]}) has number: {tile[2]}")
-        time.sleep(3)
 
     def hideTiles(self):
+        self.visible = False
         print("Tiles are now hidden")
-
-my_grid = Grid(5)
-my_grid.showTiles()

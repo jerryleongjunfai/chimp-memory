@@ -7,10 +7,12 @@ pygame.init()
 pygame.font.init()
 pygame.display.set_caption("Chimpanzee Memory Game")
 screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
+clock = pygame.time.Clock()
 
 def welcome_screen():
     running = True
     chimp_img = ui.load_image("chimp.jpg", (400, 200)) 
+
     while running:
         screen.fill(ui.background_color)
         # Calculate center positions
@@ -49,46 +51,34 @@ def welcome_screen():
                     running = False
 
 def main_game():
-    run = True  
-    cols, rows = 8, 5  # 8x5 table
-    cell_width = ui.SCREEN_WIDTH // cols  
-    cell_height = (ui.SCREEN_HEIGHT - 100) // rows
-
     game_instance = game.Game()
-    my_grid = Grid(game_instance.level + 3)
-
+    game_instance.start_new_level()
+    run = True
     while run:
+        clock.tick(60)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+        
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if game_instance.game_state == "HIDE_TILES":
+                    game_instance.handle_click(pygame.mouse.get_pos())
+                elif game_instance.game_state == "LEVEL_COMPLETE":
+                    game_instance.start_new_level()
+                elif game_instance.game_state == "GAME_OVER":
+                    # Reset game
+                    game_instance = game.Game()
+                    game_instance.start_new_level()
+
         screen.fill(ui.WHITE)
-
-        # Draw the 8x5 grid
-        for row in range(rows):
-            for col in range(cols):
-                x = col * cell_width
-                y = row * cell_height + 50
-                pygame.draw.rect(screen, (211, 211, 211), (x, y, cell_width, cell_height), 2)
-
-        for tile in my_grid.tiles:
-            xCoord, yCoord, num = tile
-            # Calculate the position for the number on the tile
-            x = (xCoord - 1) * cell_width + cell_width // 2
-            y = (yCoord - 1) * cell_height + cell_height // 2 + 50
-            # Render the number in the center of the tile
-            text = ui.title_font.render(str(num), True, ui.BLACK)
-            text_rect = text.get_rect(center=(x, y))
-            screen.blit(text, text_rect)
-
-
+        game_instance.update_game()
+        game_instance.draw_game_state(screen)
         pygame.display.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+    pygame.quit()
+    exit()
 
-
-print("trying it again")
-welcome_screen()
-main_game()
+if __name__ == "__main__":
+    welcome_screen()
+    main_game()
