@@ -132,7 +132,7 @@ class Game:
             xCoord, yCoord, num = tile
             x = (xCoord - 1) * cell_width
             y = (yCoord - 1) * cell_height + 50
-            pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height), 2)
+            pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height))
 
         # Draw correct selections in green
         for tile in self.correct_selections:
