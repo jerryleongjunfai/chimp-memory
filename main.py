@@ -1,7 +1,8 @@
 import pygame
-import uimanager as ui
+import ui_manager as ui
 from grid import Grid
 import game_logic as game
+from screen import WelcomeScreen
 
 pygame.init()
 pygame.font.init()
@@ -9,7 +10,7 @@ pygame.display.set_caption("Chimpanzee Memory Game")
 screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
-def welcome_screen():
+def run_screen(screen_obj):
     running = True
     chimp_img = ui.load_image("chimp.jpg", (400, 200)) 
 
@@ -28,8 +29,9 @@ def welcome_screen():
         button_width, button_height = 300, 60
         button_x = center_x - button_width // 2
         button_y = 450
-
         mouse = pygame.mouse.get_pos()
+
+        # Highlight button on hover
         if button_x <= mouse[0] <= button_x + button_width and button_y <= mouse[1] <= button_y + button_height:
             pygame.draw.rect(screen, ui.button_hover_color, (button_x, button_y, button_width, button_height), border_radius=10)
         else:
@@ -50,6 +52,10 @@ def welcome_screen():
                 if button_x <= mouse[0] <= button_x + button_width and button_y <= mouse[1] <= button_y + button_height:
                     running = False
 
+        # Polymorphism: screen_obj can be any object with a draw() method
+        screen_obj.draw(screen)
+
+# Game loop that handles gameplay state and drawing
 def main_game():
     game_instance = game.Game()
     game_instance.start_new_level()
@@ -62,24 +68,29 @@ def main_game():
                 run = False
         
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if game_instance.game_state == "HIDE_TILES":
+                if game_instance._game_state == "HIDE_TILES":
                     game_instance.handle_click(pygame.mouse.get_pos())
-                elif game_instance.game_state == "LEVEL_COMPLETE":
+                elif game_instance._game_state == "LEVEL_COMPLETE":
                     game_instance.start_new_level()
-                elif game_instance.game_state == "GAME_OVER":
+                elif game_instance._game_state == "GAME_OVER":
                     # Reset game
                     game_instance = game.Game()
                     game_instance.start_new_level()
 
         screen.fill(ui.WHITE)
-        game_instance.update_game()
+        # Only update game logic if the state is not paused
+        if game_instance._game_state == "SHOW_TILES" or game_instance._game_state == "HIDE_TILES":
+            game_instance.update_game()
+            
         game_instance.draw_game_state(screen)
         pygame.display.update()
 
     pygame.quit()
     exit()
 
+# Start the program by showing the welcome screen, then launch the main game
 if __name__ == "__main__":
-    welcome_screen()
+    welcome = WelcomeScreen()   # WelcomeScreen implements draw(screen)
+    run_screen(welcome)         # Pass welcome as screen_obj into run_screen() — POLYMORPHISM
     main_game()
     

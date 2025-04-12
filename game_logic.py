@@ -1,190 +1,233 @@
 import pygame
-import uimanager as ui
-import grid as g
-import player as p
-import time
+import ui_manager as ui
+from grid import Grid
+
+class GameState:
+    """Enum-like class to represent different states of the game."""
+    SHOW_TILES = "SHOW_TILES"
+    HIDE_TILES = "HIDE_TILES"
+    LEVEL_COMPLETE = "LEVEL_COMPLETE"
+    GAME_OVER = "GAME_OVER"
 
 class Game:
+    """Main game class that handles the game logic for the memory tile game."""
     def __init__(self):
-        pygame.init()
-        pygame.font.init()
-        pygame.display.set_caption("Chimpanzee Memory Game")
-        self.screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
+        """Initialize the game with default values."""
         self._level = 1
         self._lives = 3
-        self._gameState = "SHOW_TILES"
-        self.isGameOver = False
-        self.correctOrder = []
-        self.userSelection = []
-        self.show_timer = 0
-        self.expected_next = 1
-        self.level_failed = False
-        self.correct_selections = []
-        self.wrong_selection = None
-        self.game_timer = 60
-        self.start_time = 0
-    
+        self._game_state = "SHOW_TILES"
+        self._is_game_over = False
+        self._correct_order = []
+        self._user_selections = []
+        self._correct_selections = []
+        self._wrong_selection = None
+        self._expected_next = 1
+        self._level_failed = False
+        self._game_timer = 60  # seconds
+        self._show_timer = 0
+        self._start_time = 0
+        self.grid = None
+
+    # Encapsulated Getters
     def get_level(self):
+        """Get the current level number."""
         return self._level
 
+    def get_lives(self):
+        """Get the remaining lives."""
+        return self._lives
+
     def lose_life(self):
+        """Reduce player's lives by one."""
         self._lives -= 1
 
     def start_new_level(self):
-        self.grid = g.Grid(self._level + 1)
-        self.correctOrder = sorted(self.grid.tiles, key=lambda x: x[2])
-        self.user_selections = []
-        self.correct_selections = []
-        self.wrong_selection = None
-        self.expected_next = 1
-        self.game_state = "SHOW_TILES"
-        self.show_timer = pygame.time.get_ticks()
-        self.start_time = pygame.time.get_ticks()
-        self.grid.showTiles()
-        self.level_failed = False
+        """Initialize a new level with appropriate settings."""
+        if 0 <= self._level <= 15:
+            # Create a grid with number of tiles based on current level
+            self.grid = Grid(self._level + 1)
+            
+            # Sort tiles by their number for tracking correct order
+            self._correct_order = sorted(self.grid.tiles, key=lambda x: x[2])
+            
+            # Reset game state variables
+            self._user_selections = []
+            self._correct_selections = []
+            self._wrong_selection = None
+            self._expected_next = 1
+            self._game_state = GameState.SHOW_TILES
+            
+            # Set timers
+            self._show_timer = pygame.time.get_ticks()
+            self._start_time = pygame.time.get_ticks()
+            
+            # Display tiles
+            self.grid.showTiles()
+            self._level_failed = False
 
     def update_game(self):
+        """Update game state based on time elapsed."""
         current_time = pygame.time.get_ticks()
-        
-        # Handle tile reveal timing
-        if self.game_state == "SHOW_TILES" and current_time - self.show_timer > 3000:  # 3 seconds
-            self.game_state = "HIDE_TILES"
+
+        # After showing tiles for 3 seconds, hide them
+        if self._game_state == "SHOW_TILES" and current_time - self._show_timer > 3000:
+            self._game_state = "HIDE_TILES"
             self.grid.hideTiles()
-        
+
+        # Update time remaining
+        elapsed_seconds = (current_time - self._start_time) // 1000
+        remaining_time = max(0, self._game_timer - elapsed_seconds)
+
         # Check if time is up
-        elapsed_seconds = (current_time - self.start_time) // 1000
-        remaining_time = max(0, self.game_timer - elapsed_seconds)
-        
-        if remaining_time <= 0 and self.game_state != "GAME_OVER":
-            self.lives = 0
-            self.game_state = "GAME_OVER"
-    
+        if remaining_time <= 0 and self._game_state != "GAME_OVER":
+            self._lives = 0
+            self._game_state = "GAME_OVER"
+
     def handle_click(self, pos):
-        if self.game_state != "HIDE_TILES":
-            return
-            
+        """Handle mouse click at the given position."""
+        # Calculate grid dimensions
         cols, rows = 8, 5
         cell_width = ui.SCREEN_WIDTH // cols
         cell_height = (ui.SCREEN_HEIGHT - 100) // rows
-        
-        # Convert mouse position to grid coordinates
+
+        # Convert screen position to grid coordinates
         col = pos[0] // cell_width + 1
         row = (pos[1] - 50) // cell_height + 1
-
         clicked_correctly = False
-        
-        # Check if clicked on a valid tile
+
+        # Check if the click hit a tile
         for tile in self.grid.tiles:
             x, y, num = tile
             if x == col and y == row:
-                # Check if this is the expected next number
-                if num == self.expected_next:
-                    print(f"Correct! Selected {num}")
-                    self.expected_next += 1
-                    self.user_selections.append(tile)
-                    self.correct_selections.append(tile)
+                if num == self._expected_next:
+                    # Correct tile selected
+                    self._expected_next += 1
+                    self._user_selections.append(tile)
+                    self._correct_selections.append(tile)
                     clicked_correctly = True
-                    
-                    # Check if all tiles have been selected in correct order
-                    if len(self.user_selections) == len(self.grid.tiles):
-                        print("Level complete!")
-                        self.level += 1
-                        self.game_state = "LEVEL_COMPLETE"
+
+                    # Check if level is complete
+                    if len(self._user_selections) == len(self.grid.tiles):
+                        self._level += 1
+                        self._game_state = "LEVEL_COMPLETE"
                 else:
-                    print(f"Wrong! Selected {num}, expected {self.expected_next}")
-                    self.lives -= 1
-                    self.wrong_selection = (col, row)
-                    if self.lives <= 0:
-                        self.game_state = "GAME_OVER"
+                    # Wrong tile selected
+                    self._lives -= 1
+                    self._wrong_selection = (col, row)
+
+                    if self._lives <= 0:
+                        self._game_state = "GAME_OVER"
                     else:
-                        self.level_failed = True
-                        # Reset current level
-                        self.game_state = "LEVEL_COMPLETE"
+                        self._level_failed = True
+                        self._game_state = "LEVEL_COMPLETE"
                 break
+
+        # If the click was not on a correct tile and no wrong selection has been made
+        if not clicked_correctly and self._wrong_selection is None:
+            self._wrong_selection = (col, row)
         
-        # If clicked outside valid tiles
-        if not clicked_correctly:
-            if self.wrong_selection is None and self.game_state == "HIDE_TILES":
-                self.wrong_selection = (col, row)
+        # Handle click during waiting state
+        if self._game_state == "WAITING_FOR_CONTINUE":
+            self._game_state = "SHOW_TILES"
+            self.start_new_level()
         
+
     def draw_game_state(self, screen):
-        # Draw the header with level and lives info
+        """Draw the entire game state to the screen."""
+        # Draw the game header
+        self._draw_header(screen)
+
+        # Draw the grid and tiles
+        self._draw_grid(screen)
+
+        # Draw state-specific overlays
+        if self._game_state == "LEVEL_COMPLETE":
+            if self._level_failed:
+                self._draw_center_text(screen, "Wrong tile! You lose a life", extra="Click to continue")
+            else:
+                self._draw_center_text(screen, "Level Complete! Click to continue")
+        elif self._game_state == "GAME_OVER":
+            self._draw_center_text(screen, "Game Over!", extra=f"Highest level reached: {self._level}", bottom="Click to restart")
+
+    def _draw_header(self, screen):
+        """Draw the game header with level, timer, and lives."""
         pygame.draw.rect(screen, ui.background_color, (0, 0, ui.SCREEN_WIDTH, 50))
         ui.draw_text(f"Level: {self._level}", ui.regular_font, ui.BLACK, screen, 50, 25, True)
 
-        if self.game_state != "GAME_OVER":
-            elapsed_seconds = (pygame.time.get_ticks() - self.start_time) // 1000
-            remaining_time = max(0, self.game_timer - elapsed_seconds)
-            timer_text = f"{remaining_time // 60}:{remaining_time % 60:02d}"
+        # Only show timer if game is not over
+        if self._game_state != "GAME_OVER":
+            elapsed = (pygame.time.get_ticks() - self._start_time) // 1000
+            remaining = max(0, self._game_timer - elapsed)
+            timer_text = f"{remaining // 60}:{remaining % 60:02d}"
             ui.draw_text(timer_text, ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, 25, True)
 
         ui.draw_text(f"Lives: {self._lives}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH - 50, 25, True)
-        
-        # Draw grid
+
+    def _draw_grid(self, screen):
+        """Draw the game grid with tiles."""
         cols, rows = 8, 5
         cell_width = ui.SCREEN_WIDTH // cols
         cell_height = (ui.SCREEN_HEIGHT - 100) // rows
 
-        # Fill the entire grid area with white
+        # Draw background
         pygame.draw.rect(screen, ui.WHITE, (0, 50, ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT - 50))
-   
+
+        # Draw all tiles
         for tile in self.grid.tiles:
-            xCoord, yCoord, num = tile
-            x = (xCoord - 1) * cell_width
-            y = (yCoord - 1) * cell_height + 50
-            pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height))
+            x, y, num = tile
+            x_pos = (x - 1) * cell_width
+            y_pos = (y - 1) * cell_height + 50
+            pygame.draw.rect(screen, (173, 216, 230), (x_pos, y_pos, cell_width, cell_height))
 
-        # Draw correct selections in green
-        for tile in self.correct_selections:
-            xCoord, yCoord, _ = tile
-            x = (xCoord - 1) * cell_width
-            y = (yCoord - 1) * cell_height + 50
-            pygame.draw.rect(screen, (100, 200, 100), (x, y, cell_width, cell_height))
+        # Draw correct selections
+        for tile in self._correct_selections:
+            x, y, _ = tile
+            x_pos = (x - 1) * cell_width
+            y_pos = (y - 1) * cell_height + 50
+            pygame.draw.rect(screen, (100, 200, 100), (x_pos, y_pos, cell_width, cell_height))
 
-        # Draw wrong selection in red
-        if self.wrong_selection:
-            xCoord, yCoord = self.wrong_selection
-            x = (xCoord - 1) * cell_width
-            y = (yCoord - 1) * cell_height + 50
-            pygame.draw.rect(screen, (255, 100, 100), (x, y, cell_width, cell_height))
+        # Draw wrong selection if any
+        if self._wrong_selection:
+            x, y = self._wrong_selection
+            x_pos = (x - 1) * cell_width
+            y_pos = (y - 1) * cell_height + 50
+            pygame.draw.rect(screen, (255, 100, 100), (x_pos, y_pos, cell_width, cell_height))
 
-
-        # Draw numbers on tiles if in show state
-        if self.game_state == "SHOW_TILES":
+        # Show numbers when in SHOW_TILES state
+        if self._game_state == "SHOW_TILES":
             for tile in self.grid.tiles:
-                xCoord, yCoord, num = tile
-                # Calculate the position for the number on the tile
-                x = (xCoord - 1) * cell_width + cell_width // 2
-                y = (yCoord - 1) * cell_height + cell_height // 2 + 50
-                # Render the number in the center of the tile
+                x, y, num = tile
+                x_center = (x - 1) * cell_width + cell_width // 2
+                y_center = (y - 1) * cell_height + cell_height // 2 + 50
                 text = ui.title_font.render(str(num), True, ui.BLACK)
-                text_rect = text.get_rect(center=(x, y))
-                screen.blit(text, text_rect)
-        
-        # Draw selected tiles (crossed out or highlighted)
-        if self.game_state == "HIDE_TILES":
-            # Show a light blue tile for original positions after hiding
-            for tile in self.grid.tiles:
-                xCoord, yCoord, _ = tile
-                x = (xCoord - 1) * cell_width
-                y = (yCoord - 1) * cell_height + 50
-                pygame.draw.rect(screen, (173, 216, 230), (x, y, cell_width, cell_height))
+                screen.blit(text, text.get_rect(center=(x_center, y_center)))
 
-            for tile in self.user_selections:
-                xCoord, yCoord, num = tile
-                x = (xCoord - 1) * cell_width
-                y = (yCoord - 1) * cell_height + 50
-                pygame.draw.rect(screen, (100, 200, 100), (x, y, cell_width, cell_height))
+        # Hide numbers in HIDE_TILES state, but keep highlighting
+        if self._game_state == "HIDE_TILES":
+            for tile in self.grid.tiles:
+                x, y, _ = tile
+                x_pos = (x - 1) * cell_width
+                y_pos = (y - 1) * cell_height + 50
+                pygame.draw.rect(screen, (173, 216, 230), (x_pos, y_pos, cell_width, cell_height))
+
+            for tile in self._user_selections:
+                x, y, _ = tile
+                x_pos = (x - 1) * cell_width
+                y_pos = (y - 1) * cell_height + 50
+                pygame.draw.rect(screen, (100, 200, 100), (x_pos, y_pos, cell_width, cell_height))
+
+    def _draw_center_text(self, screen, message, extra=None, bottom=None):
+        """Draw centered text messages on the screen."""
+        center_x = ui.SCREEN_WIDTH // 2
+        center_y = ui.SCREEN_HEIGHT // 2
         
-        # Show messages for game states
-        if self.game_state == "LEVEL_COMPLETE":
-            if self.level_failed:
-                ui.draw_text("Wrong tile! You lose a life", ui.title_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2, True)
-                ui.draw_text("Click to continue", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 50, True)
-            else:
-                ui.draw_text("Level Complete! Click to continue", ui.title_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2, True)
+        # Draw main message
+        ui.draw_text(message, ui.title_font, ui.BLACK, screen, center_x, center_y, True)
         
-        if self.game_state == "GAME_OVER":
-            ui.draw_text("Game Over!", ui.title_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2, True)
-            ui.draw_text(f"Highest level reached: {self._level}", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 50, True)
-            ui.draw_text("Click to restart", ui.regular_font, ui.BLACK, screen, ui.SCREEN_WIDTH // 2, ui.SCREEN_HEIGHT // 2 + 150, True)
+        # Draw extra message if provided
+        if extra:
+            ui.draw_text(extra, ui.regular_font, ui.BLACK, screen, center_x, center_y + 50, True)
+        
+        # Draw bottom message if provided
+        if bottom:
+            ui.draw_text(bottom, ui.regular_font, ui.BLACK, screen, center_x, center_y + 150, True)
