@@ -29,6 +29,7 @@ class Game:
         self.grid = None
 
     # Initialize sounds
+    # Usage of dictionary
         self._sounds = {
             'correct': None,
             'wrong': None,

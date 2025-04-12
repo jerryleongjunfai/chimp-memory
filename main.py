@@ -18,6 +18,7 @@ def load_sound(filename):
     sound_path = os.path.join('sound', filename)  # Assuming sounds are in a 'sounds' folder
     try:
         sound = pygame.mixer.Sound(sound_path)
+        sound.set_volume(0.2) # Set volume to 20%
         return sound
     except pygame.error:
         print(f"Could not load sound file: {sound_path}")
@@ -86,7 +87,7 @@ def main_game():
     game_instance.load_sounds(sounds)
     game_instance.start_new_level()
     run = True
-    
+
     while run:
         clock.tick(60)
         
