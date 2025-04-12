@@ -4,13 +4,24 @@ from grid import Grid
 import game_logic as game
 from screen import WelcomeScreen
 from game_logic import GameState
+import os
 
 pygame.init()
 pygame.font.init()
+pygame.mixer.init() # Initialize the mixer for sound
 pygame.display.set_caption("Chimpanzee Memory Game")
-
 screen = pygame.display.set_mode((ui.SCREEN_WIDTH, ui.SCREEN_HEIGHT))
 clock = pygame.time.Clock()
+
+def load_sound(filename):
+    """Helper function to load sound files."""
+    sound_path = os.path.join('sound', filename)  # Assuming sounds are in a 'sounds' folder
+    try:
+        sound = pygame.mixer.Sound(sound_path)
+        return sound
+    except pygame.error:
+        print(f"Could not load sound file: {sound_path}")
+        return None
 
 def run_screen(screen_obj):
     running = True
@@ -62,15 +73,27 @@ def run_screen(screen_obj):
 
 # Game loop that handles gameplay state and drawing
 def main_game():
+    # Load sound effects
+    sounds = {
+        'correct': load_sound('correct.wav'),
+        'wrong': load_sound('wrong.wav'),
+        'level_complete': load_sound('level_complete.wav'),
+        'game_over': load_sound('game_over.wav')
+    }
+    
     game_instance = game.Game()
+    # Pass sound effects to the game instance
+    game_instance.load_sounds(sounds)
     game_instance.start_new_level()
     run = True
     
     while run:
         clock.tick(60)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if game_instance._game_state == GameState.HIDE_TILES:
                     game_instance.handle_click(pygame.mouse.get_pos())

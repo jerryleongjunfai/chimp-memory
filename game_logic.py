@@ -28,6 +28,19 @@ class Game:
         self._start_time = 0
         self.grid = None
 
+    # Initialize sounds
+        self._sounds = {
+            'correct': None,
+            'wrong': None,
+            'level_complete': None,
+            'game_over': None
+        }
+
+    # Method to load sounds
+    def load_sounds(self, sounds_dict):
+        """Load sound effects from provided dictionary."""
+        self._sounds = sounds_dict
+
     # Encapsulated Getters
     def get_level(self):
         """Get the current level number."""
@@ -82,6 +95,8 @@ class Game:
         if remaining_time <= 0 and self._game_state != GameState.GAME_OVER:
             self._lives = 0
             self._game_state = GameState.GAME_OVER
+            if self._sounds['game_over']:
+                self._sounds['game_over'].play()
 
     def handle_click(self, pos):
         """Handle mouse click at the given position."""
@@ -106,17 +121,31 @@ class Game:
                     self._correct_selections.append(tile)
                     clicked_correctly = True
 
+                    # Play correct sound
+                    if self._sounds['correct']:
+                        self._sounds['correct'].play()
+
                     # Check if level is complete
                     if len(self._user_selections) == len(self.grid.tiles):
                         self._level += 1
                         self._game_state = GameState.LEVEL_COMPLETE
+                        # Play level complete sound
+                        if self._sounds['level_complete']:
+                            self._sounds['level_complete'].play()
                 else:
                     # Wrong tile selected
                     self._lives -= 1
                     self._wrong_selection = (col, row)
 
+                    # Play wrong sound
+                    if self._sounds['wrong']:
+                        self._sounds['wrong'].play()
+
                     if self._lives <= 0:
                         self._game_state = GameState.GAME_OVER
+                        # Play game over sound
+                        if self._sounds['game_over']:
+                            self._sounds['game_over'].play()
                     else:
                         self._level_failed = True
                         self._game_state = GameState.LEVEL_COMPLETE
