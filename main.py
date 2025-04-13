@@ -103,6 +103,8 @@ def main_game():
                 elif game_instance._game_state == GameState.GAME_OVER:
                     # Reset game
                     game_instance = game.Game()
+                    # Pass sound effects to the game instance again after restarting game
+                    game_instance.load_sounds(sounds)
                     game_instance.start_new_level()
         
         screen.fill(ui.WHITE)

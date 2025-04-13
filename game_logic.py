@@ -152,9 +152,6 @@ class Game:
                         self._game_state = GameState.LEVEL_COMPLETE
                 break
 
-        # If the click was not on a correct tile and no wrong selection has been made
-        if not clicked_correctly and self._wrong_selection is None:
-            self._wrong_selection = (col, row)
         
     def draw_game_state(self, screen):
         """Draw the entire game state to the screen."""
