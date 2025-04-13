@@ -172,7 +172,17 @@ class Game:
             else:
                 self._draw_center_text(screen, "Level Complete! Click to continue")
         elif self._game_state == GameState.GAME_OVER:
-            self._draw_center_text(screen, "Game Over!", extra=f"Highest level reached: {self._level}", bottom="Click to restart")
+            # Define average chimpanzee level
+            avg_chimp_level = 9
+            # Determine comparison message
+            if self._level > avg_chimp_level:
+                comparison = f"You performed BETTER than an average chimpanzee! (Avg: {avg_chimp_level})"
+            elif self._level < avg_chimp_level:
+                comparison = f"You performed WORSE than an average chimpanzee! (Avg: {avg_chimp_level})"
+            else:
+                comparison = f"You performed EQUAL to an average chimpanzee! (Avg: {avg_chimp_level})"
+
+            self._draw_center_text(screen, "Game Over!", extra=f"Highest level reached: {self._level}",extra2=comparison, bottom="Click to restart")
 
     def _draw_header(self, screen):
         """Draw the game header with level, timer, and lives."""
@@ -241,7 +251,7 @@ class Game:
                 y_pos = (y - 1) * cell_height + 50
                 pygame.draw.rect(screen, (100, 200, 100), (x_pos, y_pos, cell_width, cell_height))
 
-    def _draw_center_text(self, screen, message, extra=None, bottom=None):
+    def _draw_center_text(self, screen, message, extra=None, bottom=None, extra2=None):
         """Draw centered text messages on the screen."""
         center_x = ui.SCREEN_WIDTH // 2
         center_y = ui.SCREEN_HEIGHT // 2
@@ -252,6 +262,10 @@ class Game:
         # Draw extra message if provided
         if extra:
             ui.draw_text(extra, ui.regular_font, ui.BLACK, screen, center_x, center_y + 50, True)
+
+        # Draw second extra message if provided
+        if extra2:
+            ui.draw_text(extra2, ui.regular_font, ui.BLACK, screen, center_x, center_y + 100, True)
         
         # Draw bottom message if provided
         if bottom:
