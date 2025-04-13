@@ -15,7 +15,7 @@ clock = pygame.time.Clock()
 
 def load_sound(filename):
     """Helper function to load sound files."""
-    sound_path = os.path.join('sound', filename)  # Assuming sounds are in a 'sounds' folder
+    sound_path = os.path.join('sound', filename)  # Assuming sounds are in a 'sound' folder
     try:
         sound = pygame.mixer.Sound(sound_path)
         sound.set_volume(0.2) # Set volume to 20%

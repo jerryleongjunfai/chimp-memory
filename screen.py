@@ -16,14 +16,6 @@ class WelcomeScreen(Screen):
     def __init__(self):
         self.chimp_img = ui.load_image("chimp.jpg", (400, 200))
 
-    def handle_event(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-            return "start_game"
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse = pygame.mouse.get_pos()
-            if self.button_rect.collidepoint(mouse):
-                return "start_game"
-
     def draw(self, surface):
         surface.fill(ui.background_color)
         center_x = ui.SCREEN_WIDTH // 2

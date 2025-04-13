@@ -18,7 +18,6 @@ title_font = pygame.font.Font(None, 48)
 regular_font = pygame.font.Font(None, 36)
 button_font = pygame.font.Font(None, 40)
 
-
 def draw_text(text, font, color, surface, x, y, center=False):
     text_obj = font.render(text, True, color)
     text_rect = text_obj.get_rect()

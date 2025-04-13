@@ -156,7 +156,6 @@ class Game:
         if not clicked_correctly and self._wrong_selection is None:
             self._wrong_selection = (col, row)
         
-
     def draw_game_state(self, screen):
         """Draw the entire game state to the screen."""
         # Draw the game header
