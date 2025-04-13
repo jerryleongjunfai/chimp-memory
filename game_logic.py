@@ -93,11 +93,18 @@ class Game:
         remaining_time = max(0, self._game_timer - elapsed_seconds)
 
         # Check if time is up
-        if remaining_time <= 0 and self._game_state != GameState.GAME_OVER:
-            self._lives = 0
-            self._game_state = GameState.GAME_OVER
-            if self._sounds['game_over']:
-                self._sounds['game_over'].play()
+        if remaining_time <= 0 and self._game_state not in (GameState.LEVEL_COMPLETE, GameState.GAME_OVER):
+            self._lives -= 1
+            self._level_failed = True
+
+            if self._lives <= 0:
+                self._game_state = GameState.GAME_OVER
+                if self._sounds['game_over']:
+                    self._sounds['game_over'].play()
+            else:
+                self._game_state = GameState.LEVEL_COMPLETE
+                if self._sounds['wrong']:
+                    self._sounds['wrong'].play()
 
     def handle_click(self, pos):
         """Handle mouse click at the given position."""
